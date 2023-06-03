@@ -29,28 +29,26 @@ def get_oversea_buy():
         'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Whale/3.20.182.14 Safari/537.36"}
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
-
     company_name = soup.find_all('a', class_='company')
     company_price = soup.find_all('td', class_='number')
-
     alllist = list()
-    title_total_organ = list()
-    price_total_organ = list()
+    name_all = list()
+    price_all = list()
 
     for companies in company_name[0:7]:
         alllist.append(companies.text.strip())
 
-    for o2 in range(len(alllist)):
-        title = company_name[o2].text.strip()
-        price = company_price[o2].text.strip()
+    for i in range(len(alllist)):
+        title = company_name[i].text.strip()
+        price = company_price[i].text.strip()
 
         company_title = title
         prices = price
 
-        title_total_organ.append(company_title)
-        price_total_organ.append(prices)
-    name_companies = title_total_organ
-    company_prices = price_total_organ
+        name_all.append(company_title)
+        price_all.append(prices)
+    name_companies = name_all
+    company_prices = price_all
 
     return name_companies, company_prices
 
@@ -84,28 +82,28 @@ def get_organization_buy():
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    organ_name = soup.find_all('a', class_='company')
-    organ_price = soup.find_all('td', class_='number')
+    company_name = soup.find_all('a', class_='company')
+    company_price = soup.find_all('td', class_='number')
 
     alllist = list()
-    title_total_organ = list()
-    price_total_organ = list()
+    name_all = list()
+    price_all = list()
 
-    for companies in organ_name[0:7]:
+    for companies in company_name[0:7]:
         alllist.append(companies.text.strip())
 
-    for o2 in range(len(alllist)):
-        title = organ_name[o2].text.strip()
-        price = organ_price[o2].text.strip()
+    for i in range(len(alllist)):
+        title = company_name[i].text.strip()
+        price = company_price[i].text.strip()
         company_title = title
         prices = price
 
-        title_total_organ.append(company_title)
-        price_total_organ.append(prices)
-    title_organ_data = title_total_organ
-    price_organ_data = price_total_organ
+        name_all.append(company_title)
+        price_all.append(prices)
+    title_datas = name_all
+    price_datas = price_all
 
-    return title_organ_data, price_organ_data
+    return title_datas, price_datas
 
 #########################################################################################################################
 #기관매수량 상위 7개 표시
