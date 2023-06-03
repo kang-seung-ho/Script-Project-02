@@ -8,6 +8,14 @@ import requests
 import re
 from bs4 import BeautifulSoup
 import json
+import os
+import datetime
+from ics import Calendar, Event
+from PIL import Image, ImageTk
+from tkinter import Toplevel
+from customtkinter import CTkLabel
+
+
 
 window = ThemedTk(theme="black")
 window.title('한국공대 나침반')
@@ -166,14 +174,13 @@ def weather_siheung(tree):
     api = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={apikey}&lang={lang}&units=metric"
 
     result = requests.get(api)
-    # json 타입으로 변환
     data = json.loads(result.text)
 
     #기존내용 삭제 후
     for i in tree.get_children():
         tree.delete(i)
 
-    # 새 내용 입력
+    # 업데이트된 내용 입력
     tree.insert('', 'end', values=("날씨", data["weather"][0]["description"]))
     tree.insert('', 'end', values=("기온", str(data["main"]["temp"]) + '°C'))
     tree.insert('', 'end', values=("체감기온", str(data["main"]["feels_like"]) + '°C'))
@@ -201,11 +208,10 @@ weather_siheung(weather_tree)
 import requests
 import os
 
-# 이미지가 저장될 폴더를 만듭니다.
+# 이미지가 저장될 폴더를 생성
 if not os.path.exists('images'):
     os.makedirs('images')
-
-# 이미지 URL
+    
 img_url = "https://contents.kpu.ac.kr/contents/2/29L/29LGCCEQKALC/images/scale1/LEV6VYJN4MVI.jpg"
 img_url2 = "https://contents.kpu.ac.kr/contents/2/29L/29LGCCEQKALC/images/scale1/O84NSS425LC3.jpg"
 
@@ -222,9 +228,7 @@ with open('images/' + 'TIP'+img_url.split('/')[-1], 'wb') as out_file:
 #########################################################################################################################
 
 #식단 이미지 출력
-from PIL import Image, ImageTk
-from tkinter import Toplevel
-from customtkinter import CTkLabel
+
 
 def show_image_E():
     top = Toplevel()
@@ -232,7 +236,6 @@ def show_image_E():
 
     my_img = ImageTk.PhotoImage(img)
     label = CTkLabel(master=top, image=my_img, text="")
-
     label.image = my_img
     label.pack()
 
@@ -245,17 +248,16 @@ def show_image_TIP():
     label.image = tip_img  # 참조를 유지하기 위해 필요
     label.pack()
 
-# 이미지를 표시할 버튼 생성
+# 버튼 클릭시 식단표 팝업 표시
 button = Button(window, text="E동식단표", command=show_image_E, width=105)
 button.place(x=415, y=0)
-
 
 button = Button(window, text='TIP식단표', command=show_image_TIP, width=105)
 button.place(x=415, y=30)
 
 #########################################################################################################################
 
-#학사력
+#이번달 학사력 가져오기
 
 def get_school_cal_tree():
     url = "https://ksc.tukorea.ac.kr/sso/login_stand.jsp"
@@ -277,13 +279,11 @@ def get_school_cal_tree():
     span_tags = academic_area.find_all('span', class_='date')
 
     for tag in span_tags:
-        # Split the text at newline characters, remove leading/trailing whitespace from each part, then join with a single space
-        cleaned_text = ' '.join(part.strip() for part in tag.text.split('\n'))
-        cleaned_text = re.sub(r'\d{4}\.', '', cleaned_text)
+        cleaned_text = ' '.join(part.strip() for part in tag.text.split('\n')) #공백 제거
+        cleaned_text = re.sub(r'\d{4}\.', '', cleaned_text) #연도 제거
         gigan.append(cleaned_text)
 
     return iljung_name, gigan
-
 
 treeview_school_cal = tkinter.ttk.Treeview(window, height=8, column=["name", "range"], displaycolumns=["name", "range"], show='headings')
 
@@ -305,66 +305,56 @@ treeview_school_cal.place(x=158, y=230)
 #############################################################################################
 
 #컴퓨터 캘린더에 일정 추가
-import os
-import datetime
-from ics import Calendar, Event
-
-# 이전에 정의한 함수
 def on_tree_select(event):
     item = treeview_school_cal.selection()[0]
     selected_event = treeview_school_cal.item(item, 'values')
     event_name, event_range = selected_event
     start_date_str, end_date_str = event_range.split('~')
 
-    # 현재 연도를 붙여줍니다.
+    # 현재 연도를 앞에 다시 붙여주기
     current_year = datetime.datetime.now().year
     start_date_str = str(current_year) + '.' + start_date_str.strip()
     end_date_str = str(current_year) + '.' + end_date_str.strip()
 
-    # datetime 객체로 변환합니다.
+    # datetime으로 변환해줌
     start_date = datetime.datetime.strptime(start_date_str, "%Y.%m.%d")
     end_date = datetime.datetime.strptime(end_date_str, "%Y.%m.%d")
 
-    # 종료일을 하루 뒤로 설정합니다.
+    # 종료일을 하루 뒤로 설정 (컴퓨터 프로그램에서 끝나는 날짜가 하루 빨라짐에 대한 오류 수정 사항)
     end_date = end_date + datetime.timedelta(days=1)
 
-    # 만약 시작일과 종료일이 같다면, 종료일을 하루 뒤의 자정으로 설정합니다.
+    # 시작일 = 종료일 이면, 종료일을 하루 뒤 자정으로 설정
     if start_date == end_date:
         end_date = end_date.replace(hour=0, minute=0, second=0)
 
-    # 새로운 이벤트를 만듭니다.
     event = Event()
     event.name = event_name
     event.begin = start_date
     event.end = end_date
 
-    # 캘린더에 이벤트를 추가합니다.
+    # 달력에 일정 추가
     calendar = Calendar()
     calendar.events.add(event)
 
-    # .ics 파일로 저장합니다.
+    # .ics 파일로 저장
     with open("event.ics", "w", encoding="utf-8") as f:
         f.write(str(calendar))
 
-    # .ics 파일을 열어 일정을 추가합니다.
+    # .ics 파일 열어 달력 프로그램으로 .ics 파일 실행
     os.startfile("event.ics")
 
-# Treeview의 선택 항목이 변경될 때마다 on_tree_select 함수를 호출합니다.
+# 선택 항목이 변경될 때마다 함수 호출
 treeview_school_cal.bind('<<TreeviewSelect>>', on_tree_select)
 
 
-
-
 #################################
-#로고 출력
-# Create a new Tkinter window
-# Open an image file
+# 학교 로고 출력
+
 with Image.open("images/로고.png") as img:
-    # Convert the image to a Tkinter-compatible photo image
+    # 로고 크기 조정
     img = img.resize((280, 75))
     logo_img = ImageTk.PhotoImage(img)
 
-# Create a label and set its image to the one we just created
 label_logo = Label(window, image=logo_img, text="")
 label_logo.place(x=520, y=325)
 
