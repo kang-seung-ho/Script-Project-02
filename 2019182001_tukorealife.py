@@ -203,8 +203,6 @@ weather_siheung(weather_tree)
 
 #########################################################################################################################
 #식단이미지 다운로드
-import requests
-import os
 
 # 이미지가 저장될 폴더를 생성
 if not os.path.exists('images'):
@@ -214,15 +212,15 @@ img_url = "https://contents.kpu.ac.kr/contents/2/29L/29LGCCEQKALC/images/scale1/
 img_url2 = "https://contents.kpu.ac.kr/contents/2/29L/29LGCCEQKALC/images/scale1/O84NSS425LC3.jpg"
 
 # 이미지 파일을 다운로드합니다.
-responses_schoolcal = requests.get(img_url, stream=True)
-response2 = requests.get(img_url2, stream=True)
+responses_schoolfood = requests.get(img_url, stream=True)
+responses_schoolfood2 = requests.get(img_url2, stream=True)
 
 # 이미지 파일을 저장합니다.
-with open('images/' + 'E동'+img_url.split('/')[-1], 'wb') as out_file:
-    out_file.write(responses_schoolcal.content)
+with open('images/' + 'E동'+img_url.split('/')[-1], 'wb') as out_file: #/로 구분, 맨 뒤에있는 파일명 가져옴
+    out_file.write(responses_schoolfood.content)
 
 with open('images/' + 'TIP'+img_url.split('/')[-1], 'wb') as out_file:
-    out_file.write(response2.content)
+    out_file.write(responses_schoolfood2.content)
 #########################################################################################################################
 
 #식단 이미지 출력
